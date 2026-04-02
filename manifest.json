@@ -2,14 +2,15 @@
   "name": "Calculadora de Vazão",
   "short_name": "Vazão",
   "description": "Calculadora de vazão de bomba d'água",
-  "start_url": "/",
+  "start_url": "/Vaz-o-bomba/",
+  "scope": "/Vaz-o-bomba/",
   "display": "standalone",
   "background_color": "#050e1a",
   "theme_color": "#00c8ff",
   "orientation": "portrait",
   "icons": [
     {
-      "src": "icon.svg",
+      "src": "/Vaz-o-bomba/icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"
