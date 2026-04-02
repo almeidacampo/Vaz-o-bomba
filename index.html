@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -108,11 +109,12 @@
 
   .panel-title {
     font-family: 'Orbitron', monospace;
-    font-size: 0.7rem;
+    font-size: 0.85rem;
     letter-spacing: 3px;
     color: var(--blue);
     text-transform: uppercase;
     margin-bottom: 20px;
+    text-shadow: 0 0 12px rgba(0,200,255,0.5);
   }
 
   .field {
@@ -121,11 +123,13 @@
 
   label {
     display: block;
-    font-size: 0.8rem;
-    letter-spacing: 1px;
-    color: var(--dim);
+    font-size: 1rem;
+    letter-spacing: 2px;
+    color: #00c8ff;
     text-transform: uppercase;
     margin-bottom: 8px;
+    font-weight: 600;
+    text-shadow: 0 0 10px rgba(0,200,255,0.4);
   }
 
   input, select {
@@ -133,10 +137,10 @@
     background: var(--bg);
     border: 1px solid rgba(0,200,255,0.2);
     border-radius: 6px;
-    padding: 12px 14px;
+    padding: 14px 16px;
     color: var(--blue);
     font-family: 'Orbitron', monospace;
-    font-size: 1rem;
+    font-size: 1.1rem;
     outline: none;
     transition: border-color 0.3s, box-shadow 0.3s;
   }
@@ -158,13 +162,14 @@
 
   .tab {
     flex: 1;
-    padding: 10px;
+    padding: 12px;
     background: var(--bg);
-    border: 1px solid rgba(0,200,255,0.15);
+    border: 1px solid rgba(0,200,255,0.3);
     border-radius: 6px;
-    color: var(--dim);
+    color: #8ab8d0;
     font-family: 'Rajdhani', sans-serif;
-    font-size: 0.85rem;
+    font-size: 1rem;
+    font-weight: 600;
     letter-spacing: 1px;
     cursor: pointer;
     text-align: center;
@@ -172,9 +177,10 @@
   }
 
   .tab.active {
-    background: rgba(0,200,255,0.1);
+    background: rgba(0,200,255,0.15);
     border-color: var(--blue);
-    color: var(--blue);
+    color: #fff;
+    text-shadow: 0 0 10px rgba(0,200,255,0.6);
   }
 
   .method-section { display: none; }
@@ -252,11 +258,12 @@
   .result-card:nth-child(4) { animation-delay: 0.2s; }
 
   .result-label {
-    font-size: 0.7rem;
+    font-size: 0.85rem;
     letter-spacing: 2px;
-    color: var(--dim);
+    color: #8ab8d0;
     text-transform: uppercase;
     margin-bottom: 8px;
+    font-weight: 600;
   }
 
   .result-value {
@@ -283,9 +290,9 @@
 
   .gauge-label {
     font-family: 'Orbitron', monospace;
-    font-size: 0.65rem;
-    letter-spacing: 2px;
-    color: var(--dim);
+    font-size: 0.8rem;
+    letter-spacing: 3px;
+    color: #8ab8d0;
     margin-bottom: 10px;
     text-transform: uppercase;
   }
