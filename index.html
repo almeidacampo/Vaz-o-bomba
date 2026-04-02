@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculadora de Vazão</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#00c8ff">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Vazão">
+<link rel="apple-touch-icon" href="icon.svg">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --blue: #00c8ff;
+    --blue-dark: #0077aa;
+    --bg: #050e1a;
+    --panel: #091828;
+    --panel2: #0d2035;
+    --accent: #00ffcc;
+    --warn: #ff6b35;
+    --text: #c8e8ff;
+    --dim: #4a7090;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    font-family: 'Rajdhani', sans-serif;
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    overflow-x: hidden;
+  }
+
+  /* Animated background grid */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,200,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,200,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  h1 {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(1.2rem, 4vw, 2rem);
+    font-weight: 900;
+    color: var(--blue);
+    text-align: center;
+    letter-spacing: 3px;
+    margin-bottom: 4px;
+    text-shadow: 0 0 30px rgba(0,200,255,0.5);
+    position: relative;
+    z-index: 1;
+  }
+
+  .subtitle {
+    font-size: 0.9rem;
+    color: var(--dim);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    text-align: center;
+    margin-bottom: 30px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .container {
+    width: 100%;
+    max-width: 900px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    position: relative;
+    z-index: 1;
+  }
+
+  @media (max-width: 600px) {
+    .container { grid-template-columns: 1fr; }
+  }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid rgba(0,200,255,0.15);
+    border-radius: 12px;
+    padding: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .panel::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--blue), transparent);
+  }
+
+  .panel-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 3px;
+    color: var(--blue);
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+
+  .field {
+    margin-bottom: 18px;
+  }
+
+  label {
+    display: block;
+    font-size: 0.8rem;
+    letter-spacing: 1px;
+    color: var(--dim);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  input, select {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid rgba(0,200,255,0.2);
+    border-radius: 6px;
+    padding: 12px 14px;
+    color: var(--blue);
+    font-family: 'Orbitron', monospace;
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.3s, box-shadow 0.3s;
+  }
+
+  input:focus, select:focus {
+    border-color: var(--blue);
+    box-shadow: 0 0 15px rgba(0,200,255,0.2);
+  }
+
+  input::placeholder { color: var(--dim); font-size: 0.8rem; }
+
+  select option { background: var(--bg); }
+
+  .method-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+
+  .tab {
+    flex: 1;
+    padding: 10px;
+    background: var(--bg);
+    border: 1px solid rgba(0,200,255,0.15);
+    border-radius: 6px;
+    color: var(--dim);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.85rem;
+    letter-spacing: 1px;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.3s;
+  }
+
+  .tab.active {
+    background: rgba(0,200,255,0.1);
+    border-color: var(--blue);
+    color: var(--blue);
+  }
+
+  .method-section { display: none; }
+  .method-section.active { display: block; }
+
+  .btn {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, var(--blue-dark), var(--blue));
+    border: none;
+    border-radius: 8px;
+    color: #000;
+    font-family: 'Orbitron', monospace;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin-top: 10px;
+    text-transform: uppercase;
+  }
+
+  .btn:hover {
+    box-shadow: 0 0 25px rgba(0,200,255,0.4);
+    transform: translateY(-1px);
+  }
+
+  /* Results Panel */
+  .results-panel {
+    grid-column: 1 / -1;
+    background: var(--panel2);
+    border: 1px solid rgba(0,255,204,0.2);
+    border-radius: 12px;
+    padding: 24px;
+    display: none;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .results-panel::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  }
+
+  .results-panel.visible { display: block; }
+
+  .results-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .result-card {
+    background: var(--bg);
+    border: 1px solid rgba(0,255,204,0.15);
+    border-radius: 10px;
+    padding: 16px;
+    text-align: center;
+    animation: slideUp 0.4s ease forwards;
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  @keyframes slideUp {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .result-card:nth-child(1) { animation-delay: 0.05s; }
+  .result-card:nth-child(2) { animation-delay: 0.1s; }
+  .result-card:nth-child(3) { animation-delay: 0.15s; }
+  .result-card:nth-child(4) { animation-delay: 0.2s; }
+
+  .result-label {
+    font-size: 0.7rem;
+    letter-spacing: 2px;
+    color: var(--dim);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .result-value {
+    font-family: 'Orbitron', monospace;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--accent);
+    text-shadow: 0 0 20px rgba(0,255,204,0.4);
+  }
+
+  .result-unit {
+    font-size: 0.75rem;
+    color: var(--dim);
+    margin-top: 4px;
+  }
+
+  /* Gauge */
+  .gauge-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 10px 0 20px;
+  }
+
+  .gauge-label {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 2px;
+    color: var(--dim);
+    margin-bottom: 10px;
+    text-transform: uppercase;
+  }
+
+  canvas#gauge {
+    max-width: 260px;
+    width: 100%;
+  }
+
+  /* Flow animation */
+  .flow-viz {
+    background: var(--bg);
+    border: 1px solid rgba(0,200,255,0.1);
+    border-radius: 10px;
+    padding: 16px;
+    margin-top: 0;
+  }
+
+  .pipe {
+    position: relative;
+    height: 40px;
+    background: #0a1a2a;
+    border-radius: 20px;
+    border: 2px solid rgba(0,200,255,0.3);
+    overflow: hidden;
+    margin: 10px 0;
+  }
+
+  .flow-stream {
+    position: absolute;
+    top: 50%;
+    left: -60px;
+    transform: translateY(-50%);
+    display: flex;
+    gap: 12px;
+    animation: flowAnim 1.2s linear infinite;
+  }
+
+  @keyframes flowAnim {
+    to { left: 110%; }
+  }
+
+  .drop {
+    width: 14px;
+    height: 14px;
+    background: var(--blue);
+    border-radius: 50%;
+    box-shadow: 0 0 8px var(--blue);
+    flex-shrink: 0;
+  }
+
+  .pipe-label {
+    font-size: 0.75rem;
+    color: var(--dim);
+    letter-spacing: 1px;
+    text-align: center;
+    margin-top: 4px;
+  }
+
+  .efficiency-bar-wrap {
+    margin-top: 16px;
+  }
+
+  .eff-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    color: var(--dim);
+    margin-bottom: 6px;
+    letter-spacing: 1px;
+  }
+
+  .eff-bar {
+    height: 8px;
+    background: var(--bg);
+    border-radius: 4px;
+    overflow: hidden;
+    border: 1px solid rgba(0,200,255,0.1);
+  }
+
+  .eff-fill {
+    height: 100%;
+    border-radius: 4px;
+    background: linear-gradient(90deg, var(--blue-dark), var(--accent));
+    transition: width 1s ease;
+    box-shadow: 0 0 8px rgba(0,255,204,0.3);
+  }
+
+  .tip {
+    font-size: 0.8rem;
+    color: var(--dim);
+    line-height: 1.6;
+    margin-top: 12px;
+    padding: 12px;
+    background: rgba(0,200,255,0.03);
+    border-left: 2px solid var(--blue);
+    border-radius: 4px;
+  }
+
+  .tip strong { color: var(--blue); }
+</style>
+</head>
+<body>
+
+<h1>💧 VAZÃO DE BOMBA</h1>
+<p class="subtitle">Calculadora Hidráulica</p>
+
+<div class="container">
+
+  <!-- Input Panel -->
+  <div class="panel">
+    <div class="panel-title">⚙ Método de Cálculo</div>
+
+    <div class="method-tabs">
+      <div class="tab active" onclick="switchTab('balde')">🪣 Balde</div>
+      <div class="tab" onclick="switchTab('reservatorio')">🏗 Reservatório</div>
+      <div class="tab" onclick="switchTab('diametro')">📐 Diâmetro</div>
+    </div>
+
+    <!-- Método 1: Balde -->
+    <div class="method-section active" id="tab-balde">
+      <p class="tip" style="margin-bottom:16px"><strong>Como usar:</strong> Posicione um balde na saída da bomba, marque o tempo e anote o volume coletado.</p>
+      <div class="field">
+        <label>Volume do Balde (litros)</label>
+        <input type="number" id="b-volume" placeholder="Ex: 20" min="0.1" step="0.1">
+      </div>
+      <div class="field">
+        <label>Tempo para Encher (segundos)</label>
+        <input type="number" id="b-tempo" placeholder="Ex: 45" min="1">
+      </div>
+    </div>
+
+    <!-- Método 2: Reservatório -->
+    <div class="method-section" id="tab-reservatorio">
+      <p class="tip" style="margin-bottom:16px"><strong>Como usar:</strong> Meça o aumento do nível em um reservatório de tamanho conhecido.</p>
+      <div class="field">
+        <label>Volume do Reservatório (litros)</label>
+        <input type="number" id="r-volume" placeholder="Ex: 1000" min="1">
+      </div>
+      <div class="field">
+        <label>Tempo para Encher (minutos)</label>
+        <input type="number" id="r-tempo" placeholder="Ex: 30" min="0.1" step="0.1">
+      </div>
+    </div>
+
+    <!-- Método 3: Diâmetro + Velocidade -->
+    <div class="method-section" id="tab-diametro">
+      <p class="tip" style="margin-bottom:16px"><strong>Como usar:</strong> Informe o diâmetro do cano e a velocidade estimada da água.</p>
+      <div class="field">
+        <label>Diâmetro do Cano (mm)</label>
+        <input type="number" id="d-diam" placeholder="Ex: 50" min="1">
+      </div>
+      <div class="field">
+        <label>Velocidade da Água (m/s)</label>
+        <input type="number" id="d-vel" placeholder="Ex: 1.5" min="0.01" step="0.01">
+      </div>
+    </div>
+
+    <button class="btn" onclick="calcular()">▶ CALCULAR VAZÃO</button>
+  </div>
+
+  <!-- Gauge Panel -->
+  <div class="panel">
+    <div class="panel-title">📊 Medidor de Vazão</div>
+    <div class="gauge-wrap">
+      <div class="gauge-label">Litros por Hora</div>
+      <canvas id="gauge" width="260" height="150"></canvas>
+    </div>
+    <div class="flow-viz">
+      <div class="pipe-label">Fluxo na Tubulação</div>
+      <div class="pipe">
+        <div class="flow-stream" id="flowStream">
+          <div class="drop"></div><div class="drop"></div>
+          <div class="drop"></div><div class="drop"></div>
+          <div class="drop"></div><div class="drop"></div>
+        </div>
+      </div>
+      <div class="efficiency-bar-wrap">
+        <div class="eff-label"><span>Baixa</span><span>Classificação da Bomba</span><span>Alta</span></div>
+        <div class="eff-bar"><div class="eff-fill" id="effFill" style="width:0%"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Results -->
+  <div class="results-panel" id="resultsPanel">
+    <div class="panel-title">✅ Resultados</div>
+    <div class="results-grid">
+      <div class="result-card">
+        <div class="result-label">Por Segundo</div>
+        <div class="result-value" id="res-seg">—</div>
+        <div class="result-unit">L/s</div>
+      </div>
+      <div class="result-card">
+        <div class="result-label">Por Minuto</div>
+        <div class="result-value" id="res-min">—</div>
+        <div class="result-unit">L/min</div>
+      </div>
+      <div class="result-card">
+        <div class="result-label">Por Hora</div>
+        <div class="result-value" id="res-hora">—</div>
+        <div class="result-unit">L/h</div>
+      </div>
+      <div class="result-card">
+        <div class="result-label">Por Dia</div>
+        <div class="result-value" id="res-dia">—</div>
+        <div class="result-unit">m³/dia</div>
+      </div>
+    </div>
+    <div class="tip" id="interpretacao"></div>
+  </div>
+
+</div>
+
+<script>
+  let activeTab = 'balde';
+  let gaugeValue = 0;
+  let gaugeTarget = 0;
+  let gaugeMax = 5000;
+
+  function switchTab(tab) {
+    activeTab = tab;
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.method-section').forEach(s => s.classList.remove('active'));
+    event.target.classList.add('active');
+    document.getElementById('tab-' + tab).classList.add('active');
+  }
+
+  function calcular() {
+    let lps = 0;
+
+    if (activeTab === 'balde') {
+      const vol = parseFloat(document.getElementById('b-volume').value);
+      const seg = parseFloat(document.getElementById('b-tempo').value);
+      if (!vol || !seg) return alert('Preencha volume e tempo!');
+      lps = vol / seg;
+    } else if (activeTab === 'reservatorio') {
+      const vol = parseFloat(document.getElementById('r-volume').value);
+      const min = parseFloat(document.getElementById('r-tempo').value);
+      if (!vol || !min) return alert('Preencha volume e tempo!');
+      lps = vol / (min * 60);
+    } else {
+      const diam = parseFloat(document.getElementById('d-diam').value) / 1000;
+      const vel = parseFloat(document.getElementById('d-vel').value);
+      if (!diam || !vel) return alert('Preencha diâmetro e velocidade!');
+      const area = Math.PI * Math.pow(diam / 2, 2);
+      lps = area * vel * 1000;
+    }
+
+    const lpm = lps * 60;
+    const lph = lps * 3600;
+    const m3d = lps * 86400 / 1000;
+
+    document.getElementById('res-seg').textContent = lps.toFixed(2);
+    document.getElementById('res-min').textContent = lpm.toFixed(1);
+    document.getElementById('res-hora').textContent = lph.toFixed(0);
+    document.getElementById('res-dia').textContent = m3d.toFixed(2);
+
+    // Interpretação
+    let interp = '';
+    if (lph < 500) interp = '💧 <strong>Bomba pequena</strong> — ideal para jardins, caixas d\'água residenciais pequenas.';
+    else if (lph < 2000) interp = '🏠 <strong>Bomba doméstica</strong> — adequada para residências com consumo moderado.';
+    else if (lph < 6000) interp = '🏗 <strong>Bomba intermediária</strong> — boa para condomínios pequenos ou irrigação.';
+    else interp = '🏭 <strong>Bomba industrial/agrícola</strong> — alta vazão, ideal para grandes volumes.';
+    document.getElementById('interpretacao').innerHTML = interp;
+
+    // Gauge
+    gaugeMax = Math.max(lph * 1.5, 1000);
+    gaugeTarget = lph;
+
+    // Efficiency bar
+    const pct = Math.min((lph / 10000) * 100, 100);
+    document.getElementById('effFill').style.width = pct + '%';
+
+    // Flow animation speed
+    const speed = Math.max(0.3, 2 - (lph / 5000));
+    document.getElementById('flowStream').style.animationDuration = speed + 's';
+
+    document.getElementById('resultsPanel').classList.add('visible');
+    animateGauge();
+  }
+
+  // Gauge drawing
+  function animateGauge() {
+    gaugeValue = 0;
+    const step = () => {
+      gaugeValue += (gaugeTarget - gaugeValue) * 0.08;
+      drawGauge(gaugeValue);
+      if (Math.abs(gaugeTarget - gaugeValue) > 1) requestAnimationFrame(step);
+      else drawGauge(gaugeTarget);
+    };
+    requestAnimationFrame(step);
+  }
+
+  function drawGauge(val) {
+    const canvas = document.getElementById('gauge');
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width, H = canvas.height;
+    ctx.clearRect(0, 0, W, H);
+
+    const cx = W / 2, cy = H - 20;
+    const R = Math.min(W / 2 - 20, H - 30);
+    const startAngle = Math.PI;
+    const endAngle = 0;
+    const pct = Math.min(val / gaugeMax, 1);
+    const fillAngle = startAngle + pct * Math.PI;
+
+    // Background arc
+    ctx.beginPath();
+    ctx.arc(cx, cy, R, startAngle, endAngle);
+    ctx.strokeStyle = 'rgba(0,200,255,0.1)';
+    ctx.lineWidth = 18;
+    ctx.lineCap = 'round';
+    ctx.stroke();
+
+    // Colored arc
+    if (pct > 0) {
+      const grad = ctx.createLinearGradient(cx - R, cy, cx + R, cy);
+      grad.addColorStop(0, '#0077aa');
+      grad.addColorStop(0.5, '#00c8ff');
+      grad.addColorStop(1, '#00ffcc');
+      ctx.beginPath();
+      ctx.arc(cx, cy, R, startAngle, fillAngle);
+      ctx.strokeStyle = grad;
+      ctx.lineWidth = 18;
+      ctx.lineCap = 'round';
+      ctx.stroke();
+
+      // Glow
+      ctx.beginPath();
+      ctx.arc(cx, cy, R, startAngle, fillAngle);
+      ctx.strokeStyle = 'rgba(0,255,204,0.2)';
+      ctx.lineWidth = 28;
+      ctx.stroke();
+    }
+
+    // Tick marks
+    for (let i = 0; i <= 10; i++) {
+      const a = Math.PI + (i / 10) * Math.PI;
+      const inner = R - 26;
+      const outer = R - 12;
+      ctx.beginPath();
+      ctx.moveTo(cx + Math.cos(a) * inner, cy + Math.sin(a) * inner);
+      ctx.lineTo(cx + Math.cos(a) * outer, cy + Math.sin(a) * outer);
+      ctx.strokeStyle = i % 5 === 0 ? 'rgba(0,200,255,0.6)' : 'rgba(0,200,255,0.2)';
+      ctx.lineWidth = i % 5 === 0 ? 2 : 1;
+      ctx.stroke();
+    }
+
+    // Needle
+    const needleAngle = startAngle + pct * Math.PI;
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(needleAngle);
+    ctx.beginPath();
+    ctx.moveTo(-8, 0);
+    ctx.lineTo(R - 30, 0);
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 2;
+    ctx.shadowColor = '#00ffcc';
+    ctx.shadowBlur = 8;
+    ctx.stroke();
+    ctx.restore();
+
+    // Center dot
+    ctx.beginPath();
+    ctx.arc(cx, cy, 7, 0, Math.PI * 2);
+    ctx.fillStyle = '#00c8ff';
+    ctx.shadowColor = '#00c8ff';
+    ctx.shadowBlur = 10;
+    ctx.fill();
+
+    // Value text
+    ctx.shadowBlur = 0;
+    ctx.font = 'bold 22px Orbitron, monospace';
+    ctx.fillStyle = '#00ffcc';
+    ctx.textAlign = 'center';
+    ctx.fillText(Math.round(val).toLocaleString('pt-BR'), cx, cy - 28);
+    ctx.font = '11px Rajdhani, sans-serif';
+    ctx.fillStyle = '#4a7090';
+    ctx.fillText('L/h', cx, cy - 14);
+  }
+
+  // Draw empty gauge on load
+  drawGauge(0);
+  // Register service worker
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js');
+  }
+</script>
+</body>
+</html>
